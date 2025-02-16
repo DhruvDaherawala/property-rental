@@ -10,8 +10,8 @@ const app = express();
 const PORT = 3001;
 
 // Middleware
-app.use(cors());                             // Allow cross-origin requests
-app.use(express.json());                     // Parse JSON request bodies
+app.use(cors());                               // Allow cross-origin requests
+app.use(express.json());                       // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
 app.use("/uploads", express.static("uploads"));  // Serve files from /uploads if needed
 

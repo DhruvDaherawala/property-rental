@@ -1,14 +1,22 @@
 import { useState } from "react";
 import axios from "axios";
 
-export default function PropertyMasterForm() {
-  const [childCount, setChildCount] = useState(0);
+export default function RenterMasterForm() {
   const [formData, setFormData] = useState({
-    propertyName: "",
-    ownerName: "",
-    address: "",
-    documents: null,
-    childProperties: [],
+    propertyTitle: "",
+    propertyOwner: "",
+    numberofFloors: "",
+    renterName: "",
+    fullAddress: "",
+    age: "",
+    numberOfStayers: "",
+    aadhaarCard: null,
+    panCard: null,
+    passportPhoto: null,
+    otherDocument: null,
+    contact1: "",
+    contact2: "",
+    remarks: "",
   });
 
   const handleInputChange = (e) => {
@@ -17,114 +25,88 @@ export default function PropertyMasterForm() {
   };
 
   const handleFileChange = (e) => {
-    setFormData({ ...formData, documents: e.target.files[0] });
-  };
-
-  const handleChildCountChange = (e) => {
-    const count = parseInt(e.target.value, 10) || 0;
-    setChildCount(count);
-    setFormData({
-      ...formData,
-      childProperties: Array(count).fill({
-        floor: "",
-        title: "",
-        description: "",
-        rooms: "",
-        washroom: "",
-        gas: "",
-        electricity: "",
-        deposit: "",
-        rent: "",
-      }),
-    });
-  };
-
-  const handleChildChange = (index, e) => {
-    const { name, value } = e.target;
-    const updatedChildren = [...formData.childProperties];
-    updatedChildren[index] = { ...updatedChildren[index], [name]: value };
-    setFormData({ ...formData, childProperties: updatedChildren });
+    const { name, files } = e.target;
+    setFormData({ ...formData, [name]: files[0] });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const form = new FormData();
-      const textData = {
-        propertyName: formData.propertyName,
-        ownerName: formData.ownerName,
-        address: formData.address,
-        childProperties: formData.childProperties,
-      };
-      form.append("formData", JSON.stringify(textData));
-      if (formData.documents) {
-        form.append("documents", formData.documents);
-      }
-      const response = await axios.post("http://localhost:3001/api/property", form, {
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value && typeof value !== "object") {
+          form.append(key, value);
+        }
+      });
+
+      if (formData.aadhaarCard) form.append("aadhaarCard", formData.aadhaarCard);
+      if (formData.panCard) form.append("panCard", formData.panCard);
+      if (formData.passportPhoto) form.append("passportPhoto", formData.passportPhoto);
+      if (formData.otherDocument) form.append("otherDocument", formData.otherDocument);
+
+      const response = await axios.post("http://localhost:3001/api/renter", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       console.log("Server Response:", response.data);
-      alert("Property data saved successfully!");
+      alert("Renter data saved successfully!");
     } catch (error) {
-      console.error("Error saving property data:", error);
-      alert("Failed to save property data!");
+      console.error("Error saving renter data:", error);
+      alert("Failed to save renter data!");
     }
   };
 
   return (
-    <div className="h-full bg-white p-10 rounded-2xl shadow-xl max-w-4xl mx-auto mt-10">
-      <h2 className="text-3xl font-semibold text-center text-indigo-600 mb-6">
-        Property Master Form
-      </h2>
+    <div className="bg-white p-10 rounded-2xl shadow-xl max-w-4xl mx-auto mt-10">
+      <h2 className="text-3xl font-semibold text-center text-indigo-600 mb-6">Renter Master Form</h2>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-6">
-          <input type="text" name="propertyName" placeholder="Property Title" onChange={handleInputChange} className={formInputStyle} />
-          <input type="text" name="ownerName" placeholder="Property Owner" onChange={handleInputChange} className={formInputStyle} />
-        </div>
-        <textarea name="address" placeholder="Property Description" onChange={handleInputChange} className={`${formInputStyle} h-32`}></textarea>
-        <div className="grid grid-cols-2 gap-6">
-          <input type="file" onChange={handleFileChange} className={formInputStyle} />
-          <input type="number" min="0" name="childCount" placeholder="Number of Floors" onChange={handleChildCountChange} className={formInputStyle} />
+        {/* Three Input Fields in One Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <FloatingLabelInput label="Property Title" name="propertyTitle" value={formData.propertyTitle} onChange={handleInputChange} />
+          <FloatingLabelInput label="Property Owner" name="propertyOwner" value={formData.propertyOwner} onChange={handleInputChange} />
+          <FloatingLabelInput label="Number of Floors" name="numberofFloors" value={formData.numberofFloors} onChange={handleInputChange} />
         </div>
 
-        {childCount > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full bg-gray-200 rounded-lg text-sm">
-              <thead>
-                <tr className="bg-indigo-500 text-white ">
-                  <th className="p-3 rounded-tl-lg">Floor</th>
-                  <th className="p-3">Title</th>
-                  <th className="p-3">Description</th>
-                  <th className="p-3">Rooms</th>
-                  <th className="p-3">Washroom</th>
-                  <th className="p-3">Gas</th>
-                  <th className="p-3">Electricity</th>
-                  <th className="p-3">Deposit</th>
-                  <th className="p-3 rounded-tr-lg">Rent</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: childCount }, (_, index) => (
-                  <tr key={index}>
-                    {['floor', 'title', 'description', 'rooms', 'washroom', 'gas', 'electricity', 'deposit', 'rent'].map((field) => (
-                      <td key={field} className="p-3">
-                        <input type="text" name={field} placeholder={field.charAt(0).toUpperCase() + field.slice(1)} onChange={(e) => handleChildChange(index, e)} className={tableInputStyle} />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <button type="submit" className="w-full bg-indigo-600 text-white p-4 rounded-lg hover:bg-indigo-700 transition">
-          Submit
-        </button>
+        <FloatingLabelTextarea label="Property Description" name="propertyDescription" value={formData.propertyDescription} onChange={handleInputChange} />
+
+        {/* Aadhaar Card Input without Header */}
+        <FileInput name="aadhaarCard" onChange={handleFileChange} />
+
+        <button type="submit" className="w-full bg-indigo-600 text-white p-4 rounded-lg hover:bg-indigo-700 transition">Submit</button>
       </form>
     </div>
   );
 }
 
-// Tailwind Custom Styles
-const formInputStyle = "w-full p-4  rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-200";
-const tableInputStyle = "w-full p-2  rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
+const FloatingLabelInput = ({ label, name, value, onChange }) => {
+  return (
+    <div className="relative w-full">
+      <input type="text" name={name} value={value} onChange={onChange} placeholder=" "
+        className="peer w-full p-4 border border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none bg-white" />
+      <label className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-indigo-500 px-1 bg-white">
+        {label}
+      </label>
+    </div>
+  );
+};
+
+const FloatingLabelTextarea = ({ label, name, value, onChange }) => {
+  return (
+    <div className="relative w-full">
+      <textarea name={name} value={value} onChange={onChange} placeholder=" "
+        className="peer w-full p-4 h-32 border border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none bg-white" ></textarea>
+      <label className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-2 peer-focus:text-sm peer-focus:text-indigo-500 px-1 bg-white">
+        {label}
+      </label>
+    </div>
+  );
+};
+
+const FileInput = ({ name, onChange }) => {
+  return (
+    <div className="relative w-full">
+      <input type="file" name={name} onChange={onChange} className="w-full p-4 border border-gray-300 rounded-lg bg-gray-100 file:bg-indigo-600 file:text-white file:px-4 file:py-2 file:border-none file:rounded-lg hover:file:bg-indigo-700" />
+    </div>
+  );
+};

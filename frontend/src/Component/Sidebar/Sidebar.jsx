@@ -58,7 +58,7 @@ export default function Sidebar() {
     <div className="flex">
       {/* Sidebar */}
       <div
-        className={`h-full bg-gray-800 text-white p-5 transition-all duration-300 ${
+        className={`h-[100vh] bg-gray-800 text-white p-5 transition-all duration-300 ${
           isOpen ? "w-64" : "w-16"
         }`}
       >
